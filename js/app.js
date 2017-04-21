@@ -43,11 +43,20 @@
   class Location {
     constructor(location) {
       this.name = location.name;
-      this.location = location
+      this.location = location;
+      this.active = ko.observable(true);
+      this.setMarker();
+    }
+
+    setMarker() {
       this.marker = new google.maps.Marker({
-        position: location.position,
+        position: this.location.position,
         map: map,
-        title: location.name
+        title: this.name
+      });
+
+      this.visible = ko.computed(() => {
+        this.marker.setMap( this.active() ? map : null)
       })
     }
   }
@@ -66,10 +75,14 @@
     this.filterLocations = ko.computed(() => {
       const filter = this.filter().toLowerCase();
 
-      if (!filter) return this.locations();
+      if (!filter) {
+        return _.map(this.locations(), item => item.active(true));
+      }
       return _.filter(this.locations(), item => {
-        return item.location.name.toLowerCase()
+        const found = item.location.name.toLowerCase()
                    .includes(filter);
+        item.active(found);
+        return found;
       })
     });
     // Insert default locations
