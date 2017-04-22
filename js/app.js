@@ -92,9 +92,15 @@ function initApp() {
         this.loadData();
       }
 
+      /*
+        Callback bound to click event, set infowindow info and open it and
+        add a bounce animation.
+      */
       activateMarker() {
         infoWindow.setContent(this.contentString);
         infoWindow.open(map, this.marker);
+        this.marker.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(() => this.marker.setAnimation(null), 2000);
       }
 
       loadData() {

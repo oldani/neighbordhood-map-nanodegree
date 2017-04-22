@@ -73,3 +73,35 @@
     transform: translateX(272px);
 }
 
+@media (min-width: 768px) {
+  .sidepanel {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+      float: left;
+  }
+
+  .push-right {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+  }
+
+  .nav {
+      -webkit-transform: translateX(272px);
+      transform: translateX(272px);
+  }
+
+  .map-container {
+      -webkit-transform: translateX(272px);
+      transform: translateX(272px);
+      float: left;
+  }
+
+  .nav-bar-container {
+      width: auto;
+  }
+
+  .map-container,
+  .nav {
+      width: calc(100% - 272px);
+  }
+}
