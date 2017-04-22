@@ -1,94 +1,163 @@
-(function() {
+function initApp() {
+  (function() {
 
-  const map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 14,
-    center: {lat: 18.479476, lng: -69.9156267}
-  });
+    // Google Maps stuff
+    const map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 14,
+      center: {lat: 18.479476, lng: -69.9156267}
+    });
+    const infoWindow = new google.maps.InfoWindow;
 
-  const model = [
-    {
-      name: 'Zona Colonial',
-      position: {
-        lat: 18.4722516,
-        lng: -69.8866591
+    // Default loctions
+    const model = [
+      {
+        name: 'Alcázar de Colón',
+        position: {
+          lat: 18.4775,
+          lng: -69.882778
+        },
+        info: ''
       },
-      info: ''
-    },
-    {
-      name: 'Centro Olimpico',
-      position: {
-        lat: 18.477685,
-        lng: -69.916742
+      {
+        name: 'Fortaleza Ozama',
+        position: {
+          lat: 18.4732,
+          lng: -69.88171
+        },
+        info:''
       },
-      info:''
-    },
-    {
-      name: 'Jardin Botanico',
-      position: {
-        lat: 18.4935752,
-        lng: -69.9535472
+      {
+        name: 'Jardin Botanico',
+        position: {
+          lat: 18.4935752,
+          lng: -69.9535472
+        },
+        info:''
       },
-      info:''
-    },
-    {
-      name: 'Faro a Colon',
-      position: {
-        lat: 18.4784251,
-        lng: -69.867889
+      {
+        name: 'Basilica Cathedral of Santa María la Menor',
+        position: {
+          lat: 18.472778,
+          lng: -69.883889
+        },
+        info:''
       },
-      info:''
-    },
-  ];
+      {
+        name: 'Columbus Lighthouse',
+        position: {
+          lat: 18.4784251,
+          lng: -69.867889
+        },
+        info:''
+      },
+      {
+        name: 'Puerta del Conde',
+        position: {
+          lat: 18.471499,
+          lng: -69.89155
+        },
+        info:''
+      },
+      {
+        name: 'Altar de la Patria',
+        position: {
+          lat: 18.471214,
+          lng: -69.892433
+        },
+        info:''
+      },
+    ];
 
-  class Location {
-    constructor(location) {
-      this.name = location.name;
-      this.location = location;
-      this.active = ko.observable(true);
-      this.setMarker();
+    // Markers Class
+    class Location {
+      constructor(location) {
+        this.name = location.name;
+        this.location = location;
+        this.active = ko.observable(true);
+        this.setMarker();
+      }
+      /*
+        Create the marker, add listener and load marker data.
+      */
+      setMarker() {
+        this.marker = new google.maps.Marker({
+          position: this.location.position,
+          map: map,
+          title: this.name
+        });
+
+        this.visible = ko.computed(() => this.marker.setMap( this.active() ? map : null));
+
+        this.marker.addListener('click', () => this.activateMarker());
+        this.loadData();
+      }
+
+      activateMarker() {
+        infoWindow.setContent(this.contentString);
+        infoWindow.open(map, this.marker);
+      }
+
+      loadData() {
+        // load wikipedia data
+        const wikiUrl = `http://en.wikipedia.org/w/api.php?action=opensearch&search=
+          ${this.name}&format=json&callback=wikiCallback`;
+        const wikiRequestTimeout = setTimeout(function(){
+            alert("failed to get wikipedia resources as it took too long");
+        }, 8000);
+        let contentString = '';
+
+        $.ajax({
+          url: wikiUrl,
+          dataType: "jsonp",
+          jsonp: "callback",
+          success:(response) => {
+            const info = response[2][0];
+            const url = response[3][0];
+
+            this.contentString = `<div id="content">
+                <div id="siteNotice">
+                </div>
+                <h1 id="firstHeading" class="firstHeading">${this.name}</h1>
+                <div id="bodyContent">
+                <p> ${info} </p>
+                </div>
+                <a href="${url}"> ${url} </a>
+                </div>`;
+
+            clearTimeout(wikiRequestTimeout);
+          },
+        }).fail(function(e) {
+            alert("failed to get wikipedia resources");
+        });
+      }
     }
 
-    setMarker() {
-      this.marker = new google.maps.Marker({
-        position: this.location.position,
-        map: map,
-        title: this.name
+    const mapViewModel = () => {
+      // Observables
+      this.activeNav = ko.observable(false);
+      this.activateSidePanel = () => this.activeNav(!this.activeNav());
+      this.locations = ko.observableArray([]);
+      this.filter = ko.observable("");
+      this.filterLocations = ko.computed(() => {
+        const filter = this.filter().toLowerCase();
+
+        if (!filter) {
+          return [].map.call(this.locations(), item => item.active(true));
+        }
+        return [].filter.call(this.locations(), item => {
+          const found = item.location.name.toLowerCase()
+                            .includes(filter);
+          item.active(found);
+          return found;
+        })
       });
 
-      this.visible = ko.computed(() => {
-        this.marker.setMap( this.active() ? map : null)
-      })
-    }
-  }
-
-  const mapViewModel = () => {
-    // Observables
-    this.activeNav = ko.observable(false);
-
-    this.activateSidePanel = () => {
-      this.activeNav(!this.activeNav());
+      this.activateCurrentMarker = marker => marker.activateMarker();
+      // Insert default locations
+      model.forEach(location => this.locations.push(new Location(location)));
     };
-    this.locations = ko.observableArray([]);
 
-    this.filter = ko.observable("");
-
-    this.filterLocations = ko.computed(() => {
-      const filter = this.filter().toLowerCase();
-
-      if (!filter) {
-        return _.map(this.locations(), item => item.active(true));
-      }
-      return _.filter(this.locations(), item => {
-        const found = item.location.name.toLowerCase()
-                   .includes(filter);
-        item.active(found);
-        return found;
-      })
-    });
-    // Insert default locations
-    model.forEach(location => this.locations.push(new Location(location)));
-  };
-  
-  $('#map').css('height', window.innerHeight - 35);
-  ko.applyBindings(mapViewModel);
-})();
+    $('#map').css('height', window.innerHeight - 35);
+    ko.applyBindings(mapViewModel);
+  })();
+}

@@ -25,17 +25,17 @@
       <span class="input-group-addon glyphicon glyphicon-filter" id="sizing-addon3"> Filter</span>
     </div>
     <ul class="sidepanel-menu" data-bind="foreach: filterLocations">
-      <li class="sidepanel-item" data-bind="text: $data.name"></li>
+      <li class="sidepanel-item" data-bind="text: $data.name, click: activateCurrentMarker"></li>
     </ul>
   </div>
   <div class="map-container" data-bind="css: { 'push-right': activeNav() }">
     <div id="map"></div>
   </div>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgf7pJo3hKZVfJKpe9j1RkKx9_tcz8RDw">
-  </script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="js/lib.js"></script>
   <script src="js/app.js"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgf7pJo3hKZVfJKpe9j1RkKx9_tcz8RDw&callback=initApp">
+  </script>
 </body>
 </html>
