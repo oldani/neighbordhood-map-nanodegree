@@ -105,7 +105,7 @@ function initApp() {
 
       loadData() {
         // load wikipedia data
-        const wikiUrl = `http://en.wikipedia.org/w/api.php?action=opensearch&search=
+        const wikiUrl = `https://en.wikipedia.org/w/api.php?action=opensearch&search=
           ${this.name}&format=json&callback=wikiCallback`;
         const wikiRequestTimeout = setTimeout(function(){
             alert("failed to get wikipedia resources as it took too long");
