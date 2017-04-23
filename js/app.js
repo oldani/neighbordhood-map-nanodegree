@@ -86,7 +86,7 @@ function initApp() {
           title: this.name
         });
 
-        this.visible = ko.computed(() => this.marker.setMap( this.active() ? map : null));
+        this.visible = ko.computed(() => this.marker.setVisible(this.active()));
 
         this.marker.addListener('click', () => this.activateMarker());
         this.loadData();
@@ -97,26 +97,25 @@ function initApp() {
         add a bounce animation.
       */
       activateMarker() {
+        map.panTo(this.marker.getPosition());
         infoWindow.setContent(this.contentString);
         infoWindow.open(map, this.marker);
         this.marker.setAnimation(google.maps.Animation.BOUNCE);
-        setTimeout(() => this.marker.setAnimation(null), 2000);
+        setTimeout(() => this.marker.setAnimation(null), 1400);
       }
 
       loadData() {
         // load wikipedia data
         const wikiUrl = `https://en.wikipedia.org/w/api.php?action=opensearch&search=
           ${this.name}&format=json&callback=wikiCallback`;
-        const wikiRequestTimeout = setTimeout(function(){
-            alert("failed to get wikipedia resources as it took too long");
-        }, 8000);
         let contentString = '';
 
         $.ajax({
           url: wikiUrl,
           dataType: "jsonp",
           jsonp: "callback",
-          success:(response) => {
+          timeout: 8000,
+          success: (response) => {
             const info = response[2][0];
             const url = response[3][0];
 
@@ -129,16 +128,17 @@ function initApp() {
                 </div>
                 <a href="${url}"> ${url} </a>
                 </div>`;
-
-            clearTimeout(wikiRequestTimeout);
           },
-        }).fail(function(e) {
-            alert("failed to get wikipedia resources");
-        });
-      }
-    }
+          error: (requestObj, errorType, error ) => {
+            alert(`An error occur while loading ${this.name} information from Wikipedia Api.
+                   ${errorType}: ${error}`);
+            console.error(errorType, error);
+          }
+        })
+      };
+    };
 
-    const mapViewModel = () => {
+    const MapViewModel = () => {
       // Observables
       this.activeNav = ko.observable(false);
       this.activateSidePanel = () => this.activeNav(!this.activeNav());
@@ -164,6 +164,10 @@ function initApp() {
     };
 
     $('#map').css('height', window.innerHeight - 35);
-    ko.applyBindings(mapViewModel);
+    ko.applyBindings(MapViewModel);
   })();
+};
+
+const mapApiError = () => {
+  alert("An error occur trying to load Google Map, please make sure you have internet connection.");
 }
